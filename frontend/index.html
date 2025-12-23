@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Correlation Lab</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+        <span class="theme-toggle-label" id="theme-label">Dark</span>
+    </button>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-bg-pattern"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">FINANCIAL ANALYSIS</div>
+                <h1 class="hero-title">
+                    <span class="title-main">Asset Correlation</span>
+                    <span class="title-accent">Lab</span>
+                </h1>
+                <p class="hero-subtitle">
+                    상관관계(Correlation)는 두 자산의 수익률이 함께 움직이는 정도를 -1에서 +1 사이로 나타냅니다.<br>
+                    <span class="text-muted">※ 과거 상관관계가 미래에도 유지된다는 보장은 없습니다.</span>
+                </p>
+                <button class="cta-button" onclick="scrollToMatrix()">
+                    <span>Start Analysis</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-assets">6</span>
+                    <span class="stat-label">Assets</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-pairs">15</span>
+                    <span class="stat-label">Pairs</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-periods">9</span>
+                    <span class="stat-label">Periods</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Correlation Matrix Section -->
+    <section id="matrix" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Correlation Matrix</h2>
+                <div class="range-selector" id="matrix-range-selector">
+                    <button class="range-btn" data-range="1M">1M</button>
+                    <button class="range-btn" data-range="3M">3M</button>
+                    <button class="range-btn" data-range="6M">6M</button>
+                    <button class="range-btn" data-range="YTD">YTD</button>
+                    <button class="range-btn active" data-range="1Y">1Y</button>
+                    <button class="range-btn" data-range="3Y">3Y</button>
+                    <button class="range-btn" data-range="5Y">5Y</button>
+                    <button class="range-btn" data-range="10Y">10Y</button>
+                    <button class="range-btn" data-range="MAX">MAX</button>
+                </div>
+            </div>
+            <div class="matrix-info">
+                <span class="info-text" id="matrix-ref-date">기준일: Loading...</span>
+                <span class="info-text">셀 클릭 → 비교 차트로 이동</span>
+            </div>
+            <div class="matrix-container">
+                <div class="matrix-scroll">
+                    <div class="correlation-matrix" id="correlation-matrix">
+                        <!-- Matrix will be rendered here -->
+                    </div>
+                </div>
+            </div>
+            <div class="color-legend">
+                <span class="legend-label">-1.0</span>
+                <div class="legend-gradient"></div>
+                <span class="legend-label">+1.0</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparative Chart Section -->
+    <section id="chart" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Comparative Chart</h2>
+            </div>
+            <div class="chart-controls">
+                <div class="control-group">
+                    <label class="control-label">Asset A</label>
+                    <select id="asset-a-select" class="asset-select">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Asset B</label>
+                    <select id="asset-b-select" class="asset-select">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Period</label>
+                    <div class="range-selector" id="chart-range-selector">
+                        <button class="range-btn" data-range="1M">1M</button>
+                        <button class="range-btn" data-range="3M">3M</button>
+                        <button class="range-btn" data-range="6M">6M</button>
+                        <button class="range-btn" data-range="YTD">YTD</button>
+                        <button class="range-btn active" data-range="1Y">1Y</button>
+                        <button class="range-btn" data-range="3Y">3Y</button>
+                        <button class="range-btn" data-range="5Y">5Y</button>
+                        <button class="range-btn" data-range="10Y">10Y</button>
+                        <button class="range-btn" data-range="MAX">MAX</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-meta">
+                <div class="meta-item">
+                    <span class="meta-label">기준일</span>
+                    <span class="meta-value" id="chart-ref-date">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">표본수</span>
+                    <span class="meta-value" id="chart-sample-count">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">상관계수</span>
+                    <span class="meta-value" id="chart-correlation">-</span>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="comparison-chart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-dot" style="background: var(--accent);"></span>
+                        <span class="stat-card-title" id="stat-a-name">Asset A</span>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-row">
+                            <span>Volatility (연환산)</span>
+                            <span id="stat-a-vol">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>누적 수익률</span>
+                            <span id="stat-a-return">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-dot" style="background: var(--pos);"></span>
+                        <span class="stat-card-title" id="stat-b-name">Asset B</span>
+                    </div>
+                    <div class="stat-card-body">
+                        <div class="stat-row">
+                            <span>Volatility (연환산)</span>
+                            <span id="stat-b-vol">-</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>누적 수익률</span>
+                            <span id="stat-b-return">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insights Section -->
+    <section id="insights" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Insights</h2>
+                <span class="section-subtitle">선택 기간 기준 자동 분석 결과</span>
+            </div>
+            <div class="insights-grid" id="insights-grid">
+                <!-- Insight cards will be rendered here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <span class="footer-label">Data Source</span>
+                    <span class="footer-value">Local CSV fixtures (demo)</span>
+                </div>
+                <div class="footer-divider"></div>
+                <p class="footer-disclaimer">
+                    ⚠️ This tool is for informational purposes only and does not constitute financial advice.
+                    Past performance is not indicative of future results.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
